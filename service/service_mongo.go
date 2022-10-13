@@ -16,17 +16,17 @@ import (
 )
 
 // MongoDB Database Service
-type mongoDatabaseService struct {
+type MongoDatabaseService struct {
 	client *mongo.Client
 }
 
 // Instance new MongoDB service
 func NewMongoDatabaseService() DatabaseService {
-	return &mongoDatabaseService{}
+	return &MongoDatabaseService{}
 }
 
 // Establish a connection to MongoDB Cluster
-func (s *mongoDatabaseService) Connect() (context.Context, context.CancelFunc) {
+func (s *MongoDatabaseService) Connect() (context.Context, context.CancelFunc) {
 	// Get URI from .env
 	err := godotenv.Load()
 	if err != nil {
@@ -62,14 +62,14 @@ func (s *mongoDatabaseService) Connect() (context.Context, context.CancelFunc) {
 }
 
 // Establish a connection to MongoDB Cluster
-func (s *mongoDatabaseService) Disconnect(ctx context.Context, cancel context.CancelFunc) {
+func (s *MongoDatabaseService) Disconnect(ctx context.Context, cancel context.CancelFunc) {
 	// Cancel context
 	s.client.Disconnect(ctx)
 	cancel()
 }
 
 // Create a document on database
-func (s *mongoDatabaseService) Create(ctx context.Context, database, table, id string, doc any) (string, error) {
+func (s *MongoDatabaseService) Create(ctx context.Context, database, table, id string, doc any) (string, error) {
 	// Get database and collection
 	db := s.client.Database(database)
 	col := db.Collection(table)
@@ -97,7 +97,7 @@ func (s *mongoDatabaseService) Create(ctx context.Context, database, table, id s
 }
 
 // Read a document from database
-func (s *mongoDatabaseService) Read(ctx context.Context, database, table string, filter map[string]interface{}, to any) error {
+func (s *MongoDatabaseService) Read(ctx context.Context, database, table string, filter map[string]interface{}, to any) error {
 	// Get database and collection
 	db := s.client.Database(database)
 	col := db.Collection(table)
@@ -113,7 +113,7 @@ func (s *mongoDatabaseService) Read(ctx context.Context, database, table string,
 }
 
 // Update a document on database
-func (s *mongoDatabaseService) Update(ctx context.Context, database, table string, filter map[string]interface{}, doc any) error {
+func (s *MongoDatabaseService) Update(ctx context.Context, database, table string, filter map[string]interface{}, doc any) error {
 	// Get database and collection
 	db := s.client.Database(database)
 	col := db.Collection(table)
@@ -134,7 +134,7 @@ func (s *mongoDatabaseService) Update(ctx context.Context, database, table strin
 }
 
 // Update a document on database
-func (s *mongoDatabaseService) Delete(ctx context.Context, database, table, id string) error {
+func (s *MongoDatabaseService) Delete(ctx context.Context, database, table, id string) error {
 	// Get database and collection
 	db := s.client.Database(database)
 	col := db.Collection(table)
