@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"time"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
@@ -40,7 +39,7 @@ func (s *MongoDatabaseService) Connect() (context.Context, context.CancelFunc) {
 	}
 
 	// Create context
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 
 	// Connect
 	err = client.Connect(ctx)
