@@ -9,7 +9,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -92,8 +91,7 @@ func (s *MongoDatabaseService) Create(ctx context.Context, database, table, id s
 	}
 
 	// Return ID
-	returnedID := res.InsertedID.(primitive.ObjectID)
-	return string(returnedID[:]), nil
+	return res.InsertedID.(string), nil
 }
 
 // Read a document from database
