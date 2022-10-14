@@ -82,7 +82,9 @@ func (s *MongoDatabaseService) Create(ctx context.Context, database, table, id s
 	json.Unmarshal(b, &m)
 
 	// Insert ID
-	m["_id"] = id
+	if id != "" {
+		m["_id"] = id
+	}
 
 	// Insert into database
 	res, err := col.InsertOne(ctx, m)
