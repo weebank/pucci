@@ -82,8 +82,8 @@ func (s *MongoDatabaseService) Create(ctx context.Context, database, table, id s
 	json.Unmarshal(b, &m)
 
 	// Insert ID
-	if id != "" {
-		m["_id"] = id
+	if objectID, err := primitive.ObjectIDFromHex(id); err == nil {
+		m["_id"] = objectID
 	}
 
 	// Insert into database
