@@ -97,7 +97,7 @@ func (s *MongoDatabaseService) Create(ctx context.Context, database, table, id s
 }
 
 // Read a document from database
-func (s *MongoDatabaseService) Read(ctx context.Context, database, table string, filter map[string]interface{}, to any) error {
+func (s *MongoDatabaseService) Read(ctx context.Context, database, table string, filter map[string]interface{}, to any) (string, error) {
 	// Get database and collection
 	db := s.client.Database(database)
 	col := db.Collection(table)
@@ -105,11 +105,21 @@ func (s *MongoDatabaseService) Read(ctx context.Context, database, table string,
 	// Find document
 	res := col.FindOne(ctx, filter)
 	if res.Err() != nil {
-		return res.Err()
+		return primitive.NilObjectID.String(), res.Err()
+	}
+
+	// Obtain ID
+	type ID struct {
+		ID primitive.ObjectID `bson:"_id"`
+	}
+	var id ID
+	err := res.Decode(&id)
+	if err != nil {
+		return primitive.NilObjectID.String(), err
 	}
 
 	// Decode document
-	return res.Decode(to)
+	return id.ID.String(), res.Decode(to)
 }
 
 // Read a document from database by its ID
