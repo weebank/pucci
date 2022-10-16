@@ -112,6 +112,22 @@ func (s *MongoDatabaseService) Read(ctx context.Context, database, table string,
 	return res.Decode(to)
 }
 
+// Read a document from database by its ID
+func (s *MongoDatabaseService) ReadByID(ctx context.Context, database, table, id string, to any) error {
+	// Get database and collection
+	db := s.client.Database(database)
+	col := db.Collection(table)
+
+	// Find document
+	res := col.FindOne(ctx, bson.M{"_id": id})
+	if res.Err() != nil {
+		return res.Err()
+	}
+
+	// Decode document
+	return res.Decode(to)
+}
+
 // Update a document on database
 func (s *MongoDatabaseService) Update(ctx context.Context, database, table string, filter map[string]interface{}, doc any) error {
 	// Get database and collection
