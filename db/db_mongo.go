@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/weebank/pucci"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -89,6 +90,9 @@ func (s *MongoDatabaseService) Create(ctx context.Context, database, table, id s
 	// Insert into database
 	res, err := col.InsertOne(ctx, m)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return "", pucci.ErrorDuplicatedID
+		}
 		return "", err
 	}
 
@@ -105,6 +109,9 @@ func (s *MongoDatabaseService) Read(ctx context.Context, database, table string,
 	// Find document
 	res := col.FindOne(ctx, filter)
 	if res.Err() != nil {
+		if res.Err() == mongo.ErrNoDocuments {
+			return pucci.ErrorItemDoesNotExist
+		}
 		return res.Err()
 	}
 
@@ -126,8 +133,11 @@ func (s *MongoDatabaseService) Update(ctx context.Context, database, table strin
 	m := make(map[string]interface{})
 	json.Unmarshal(b, &m)
 
-	// Convert document to map
+	// Find document and update
 	res := col.FindOneAndReplace(ctx, filter, doc)
+	if res.Err() == mongo.ErrNoDocuments {
+		return pucci.ErrorItemDoesNotExist
+	}
 
 	// Return error
 	return res.Err()
@@ -141,6 +151,10 @@ func (s *MongoDatabaseService) Delete(ctx context.Context, database, table, id s
 
 	// Delete document
 	_, err := col.DeleteOne(ctx, bson.M{"_id": id})
+	if err == mongo.ErrNoDocuments {
+		return pucci.ErrorItemDoesNotExist
+	}
 
+	// Return error
 	return err
 }
