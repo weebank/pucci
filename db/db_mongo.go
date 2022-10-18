@@ -83,8 +83,8 @@ func (s *MongoDatabaseService) Create(ctx context.Context, database, table, id s
 	json.Unmarshal(b, &m)
 
 	// Insert ID
-	if id != "" {
-		m["_id"] = id
+	if objectID, err := primitive.ObjectIDFromHex(id); err == nil {
+		m["_id"] = objectID
 	}
 
 	// Insert into database
@@ -97,11 +97,11 @@ func (s *MongoDatabaseService) Create(ctx context.Context, database, table, id s
 	}
 
 	// Return ID
-	return res.InsertedID.(primitive.ObjectID).String(), nil
+	return res.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 // Read a document from database
-func (s *MongoDatabaseService) Read(ctx context.Context, database, table string, filter map[string]interface{}, to any) error {
+func (s *MongoDatabaseService) Read(ctx context.Context, database, table string, filter map[string]interface{}, to any) (string, error) {
 	// Get database and collection
 	db := s.client.Database(database)
 	col := db.Collection(table)
@@ -110,8 +110,40 @@ func (s *MongoDatabaseService) Read(ctx context.Context, database, table string,
 	res := col.FindOne(ctx, filter)
 	if res.Err() != nil {
 		if res.Err() == mongo.ErrNoDocuments {
-			return pucci.ErrorItemDoesNotExist
+			return primitive.NilObjectID.Hex(), pucci.ErrorItemDoesNotExist
 		}
+		return primitive.NilObjectID.Hex(), res.Err()
+	}
+
+	// Obtain ID
+	type ID struct {
+		ID primitive.ObjectID `bson:"_id"`
+	}
+	var id ID
+	err := res.Decode(&id)
+	if err != nil {
+		return primitive.NilObjectID.Hex(), err
+	}
+
+	// Decode document
+	return id.ID.Hex(), res.Decode(to)
+}
+
+// Read a document from database by its ID
+func (s *MongoDatabaseService) ReadByID(ctx context.Context, database, table, id string, to any) error {
+	// Get database and collection
+	db := s.client.Database(database)
+	col := db.Collection(table)
+
+	// Validate ID
+	docID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	// Find document
+	res := col.FindOne(ctx, bson.M{"_id": docID})
+	if res.Err() != nil {
 		return res.Err()
 	}
 
